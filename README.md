@@ -23,7 +23,21 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Servicio de identidad de Profelink Kahoot. La autenticación usa exclusivamente
+`username` y contraseña; no se solicita ni se usa correo electrónico.
+
+## Contrato de autenticación
+
+- `POST /auth/register`: `{ "username", "password", "role?" }`.
+- `POST /auth/login`: `{ "username", "password" }`.
+- La respuesta contiene `{ "accessToken", "user": { "id", "username", "role" } }`.
+- El JWT incluye la audiencia `kahoot-api`; configura `JWT_SECRET` igual en Auth y
+  `kahoot-api`. Auth usa PostgreSQL separado mediante `DB_HOST`, `DB_PORT`,
+  `DB_USER`, `DB_PASSWORD` y `DB_NAME`.
+- Healthcheck: `GET /auth/health`.
+
+El usuario demo del seed se llama `profesor_test`; su contraseña se define con
+`DEMO_USER_PASSWORD` en el `.env` del Compose del monolito.
 
 ## Project setup
 

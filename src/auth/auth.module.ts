@@ -9,8 +9,11 @@ import { User } from '../users/entities/user.entity';
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret_key_compartida',
-      signOptions: { expiresIn: '1d' },
+      secret: process.env.JWT_SECRET,
+      signOptions: {
+        expiresIn: '1d',
+        audience: process.env.JWT_AUDIENCE?.trim() || 'kahoot-api',
+      },
     }),
   ],
   controllers: [AuthController],
