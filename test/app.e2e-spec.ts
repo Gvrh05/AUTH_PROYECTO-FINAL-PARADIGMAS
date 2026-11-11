@@ -52,6 +52,37 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
     },
   };
   const bearer = () => `Bearer ${token}`;
+  it('registra un perfil, rechaza duplicados y permite iniciar sesión sin dar acceso MASTER', async () => {
+    const input = {
+      username: '  perfil_demo  ',
+      password: 'prueba-segura-2026',
+    };
+    const agent = request(app.getHttpServer());
+    const { body: profile } = await agent
+      .post('/auth/register')
+      .send(input)
+      .expect(201);
+    expect(profile).toMatchObject({
+      username: 'perfil_demo',
+      role: 'PROFESOR',
+      isSystem: false,
+    });
+    expect(profile).not.toHaveProperty('passwordHash');
+    await agent.post('/auth/register').send(input).expect(409);
+    await agent
+      .post('/auth/register')
+      .send({ ...input, role: 'MASTER' })
+      .expect(400);
+    const { body: session } = await agent
+      .post('/auth/login')
+      .send(input)
+      .expect(200);
+    await agent
+      .get('/auth/users')
+      .set('Authorization', `Bearer ${session.accessToken}`)
+      .expect(403);
+  });
+
   beforeAll(async () => {
     process.env.JWT_AUDIENCE = 'kahoot-api';
     delete process.env.JWT_ISSUER;
@@ -103,7 +134,7 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
   });
   afterAll(async () => app?.close());
 
-  it('emite contrato estricto y perfiles seguros; registro retirado', async () => {
+  it('emite contrato estricto y perfiles seguros', async () => {
     expect(jwt.verify<Record<string, unknown>>(token)).toMatchObject({
       sub: master.id,
       role: 'MASTER',
@@ -129,10 +160,6 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
       .set('Authorization', bearer())
       .expect(200)
       .expect(me.body as object);
-    await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({ username: 'attacker', password: 'password-123', role: 'MASTER' })
-      .expect(404);
   });
 
   it('MASTER crea PROFESOR, normaliza y maneja duplicados; PROFESOR no administra', async () => {

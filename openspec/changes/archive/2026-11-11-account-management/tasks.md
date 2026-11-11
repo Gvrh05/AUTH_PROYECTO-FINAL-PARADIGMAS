@@ -2,7 +2,7 @@
 - [x] Escribir proposal/design/deltas y contratos.
 - [x] Implementar modelo, migración conservadora y protección SQL de sistema.
 - [x] Implementar bootstrap interno idempotente y documentar orden de despliegue.
-- [x] Retirar registro público e implementar gestión MASTER.
+- [x] Permitir registro de perfiles PROFESOR sin permitir escalación a MASTER y conservar la administración exclusiva de MASTER.
 - [x] Emitir JWT estricto y validar actividad/rol/versión.
 - [x] Implementar invalidación atómica y auditoría sin secretos.
 - [x] Resolver scripts nativos pnpm explícitamente para bcrypt/Parcel.

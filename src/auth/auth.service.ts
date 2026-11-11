@@ -108,7 +108,7 @@ export class AuthService {
     };
   }
 
-  async create(dto: CreateUserDto, actor: string) {
+  async create(dto: CreateUserDto, actor?: string) {
     try {
       const user = await this.users.save(
         this.users.create({
@@ -120,7 +120,7 @@ export class AuthService {
           credentialVersion: 1,
         }),
       );
-      this.audit('create', actor, user.id);
+      this.audit(actor ? 'create' : 'register', actor ?? user.id, user.id);
       return safeUser(user);
     } catch (error) {
       this.rethrow(error);

@@ -34,7 +34,7 @@ postgres('PostgreSQL account migration (isolated schemas)', () => {
     source = new DataSource({
       type: 'postgres',
       host: 'localhost',
-      port: 55433,
+      port: Number(env.AUTH_POSTGRES_PORT ?? '55433'),
       username: 'auth',
       password: env.AUTH_POSTGRES_PASSWORD,
       database: 'auth_db',
