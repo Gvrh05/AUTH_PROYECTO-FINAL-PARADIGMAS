@@ -4,12 +4,12 @@ RUN npm install --global pnpm@11.11.0
 
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store --network-concurrency=4 --fetch-timeout=120000 --fetch-retries=3
+RUN --mount=type=cache,id=s/61a50654-0f26-45d7-a460-857b72ead667-pnpm-store,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store --network-concurrency=4 --fetch-timeout=120000 --fetch-retries=3
 
 FROM dependencies AS build
 COPY . .
 RUN pnpm run build
-RUN --mount=type=cache,target=/pnpm/store CI=true pnpm install --prod --offline --frozen-lockfile --store-dir=/pnpm/store
+RUN --mount=type=cache,id=s/61a50654-0f26-45d7-a460-857b72ead667-pnpm-store,target=/pnpm/store CI=true pnpm install --prod --offline --frozen-lockfile --store-dir=/pnpm/store
 
 FROM node:22-alpine AS production
 ENV NODE_ENV=production
