@@ -53,3 +53,13 @@ Auth SHALL log successful administrative changes using action and actor/target U
 #### Scenario: Password reset
 - **WHEN** a reset succeeds
 - **THEN** an audit event is emitted without password, hash or token.
+### Requirement: Registro de perfil
+Auth SHALL aceptar un usuario y contraseña válidos en `POST /auth/register` y crear un perfil activo PROFESOR con identidad propia.
+
+#### Scenario: Registro público sin privilegios administrativos
+- WHEN una persona registra un nombre disponible y una contraseña válida
+- THEN recibe el perfil seguro y puede iniciar sesión con ese usuario.
+
+#### Scenario: Nombre duplicado o intento de elegir rol
+- WHEN el nombre ya existe o la solicitud contiene un rol
+- THEN Auth responde 409 para duplicados o 400 para un campo no admitido.

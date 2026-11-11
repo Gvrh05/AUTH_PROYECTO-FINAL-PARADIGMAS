@@ -28,6 +28,8 @@ Servicio de identidad de Profelink Kahoot. La autenticación usa exclusivamente
 
 ## Contrato de autenticación
 
+Guía de variables, base de datos, bootstrap y CORS: [Railway](docs/railway.md).
+
 - `POST /auth/login`: `{username,password}` → 200 `{accessToken,user}`.
 - `GET /auth/me`, `POST /auth/session/validate`: Bearer → 200 perfil seguro.
 - `GET /auth/users?page=1&limit=20`: MASTER → `{items,total,page,limit}`.
@@ -35,7 +37,8 @@ Servicio de identidad de Profelink Kahoot. La autenticación usa exclusivamente
 - `PATCH /auth/users/:id`: MASTER, `{username?,active?}` → 200 perfil.
 - `POST /auth/users/:id/reset-password`: MASTER, `{password}` → 200 perfil.
 - Perfil seguro: `{id,username,role,active,isSystem,credentialVersion}`. Nunca hashes.
-- Registro público retirado (`POST /auth/register` devuelve 404).
+- `POST /auth/register`: `{username,password}` → 201 perfil PROFESOR. Los campos
+  administrativos no se admiten. La referencia Scalar está en `/auth/docs/`.
 - JWT HS256: `sub` UUID, `role` MASTER|PROFESOR, `purpose:'account'`,
   `credentialVersion` entero positivo, `exp` obligatorio (24 h), `aud` default
   `kahoot-api`. `JWT_SECRET` debe coincidir con API; `JWT_ISSUER` opcional.
