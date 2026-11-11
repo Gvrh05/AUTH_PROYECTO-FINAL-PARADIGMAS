@@ -16,8 +16,17 @@ export class User {
   @Column()
   passwordHash: string;
 
-  @Column({ default: 'ESTUDIANTE' })
-  role: 'PROFESOR' | 'ESTUDIANTE';
+  @Column({ default: 'PROFESOR' })
+  role: 'MASTER' | 'PROFESOR';
+
+  @Column({ default: true })
+  active: boolean;
+
+  @Column({ default: false })
+  isSystem: boolean;
+
+  @Column({ default: 1 })
+  credentialVersion: number;
 
   @CreateDateColumn()
   createdAt: Date;
