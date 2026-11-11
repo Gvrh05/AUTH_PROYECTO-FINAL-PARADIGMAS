@@ -18,6 +18,7 @@ import { User } from '../users/entities/user.entity';
         return {
           secret,
           signOptions: {
+            algorithm: 'HS256' as const,
             expiresIn: '1d' as const,
             audience: process.env.JWT_AUDIENCE?.trim() || 'kahoot-api',
             ...(process.env.JWT_ISSUER?.trim() && {

@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { User } from './users/entities/user.entity';
 import { CreateUsers1800000000000 } from './database/migrations/1800000000000-CreateUsers';
+import { AccountManagement1800000000001 } from './database/migrations/1800000000001-AccountManagement';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { CreateUsers1800000000000 } from './database/migrations/1800000000000-Cr
       database: process.env.DB_NAME || 'kahoot_db',
       entities: [User],
       synchronize: false,
-      migrations: [CreateUsers1800000000000],
+      migrations: [CreateUsers1800000000000, AccountManagement1800000000001],
       migrationsRun: true,
     }),
     AuthModule,

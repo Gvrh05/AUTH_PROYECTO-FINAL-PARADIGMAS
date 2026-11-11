@@ -1,0 +1,12 @@
+# Tasks
+- [x] Escribir proposal/design/deltas y contratos.
+- [x] Implementar modelo, migración conservadora y protección SQL de sistema.
+- [x] Implementar bootstrap interno idempotente y documentar orden de despliegue.
+- [x] Retirar registro público e implementar gestión MASTER.
+- [x] Emitir JWT estricto y validar actividad/rol/versión.
+- [x] Implementar invalidación atómica y auditoría sin secretos.
+- [x] Resolver scripts nativos pnpm explícitamente para bcrypt/Parcel.
+- [x] Añadir fixtures HTTP y pruebas unitarias de migración/bootstrap.
+- [x] Verificar pnpm install --frozen-lockfile, build, lint, 12 unitarias y 5 e2e HTTP.
+- [x] Ejecutar migración y bootstrap sobre PostgreSQL aislado con fixtures, incluyendo concurrencia y trigger SQL (6 pruebas).
+- [x] Integración Compose/API/web, bootstrap de instalación nueva y preservación de datos legacy mediante fixtures.
