@@ -58,10 +58,15 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
       password: 'prueba-segura-2026',
     };
     const agent = request(app.getHttpServer());
-    const { body: profile } = await agent
+    const registered = await agent
       .post('/auth/register')
       .send(input)
       .expect(201);
+    const profile = registered.body as {
+      username: string;
+      role: string;
+      isSystem: boolean;
+    };
     expect(profile).toMatchObject({
       username: 'perfil_demo',
       role: 'PROFESOR',
@@ -73,10 +78,8 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
       .post('/auth/register')
       .send({ ...input, role: 'MASTER' })
       .expect(400);
-    const { body: session } = await agent
-      .post('/auth/login')
-      .send(input)
-      .expect(200);
+    const loggedIn = await agent.post('/auth/login').send(input).expect(200);
+    const session = loggedIn.body as { accessToken: string };
     await agent
       .get('/auth/users')
       .set('Authorization', `Bearer ${session.accessToken}`)

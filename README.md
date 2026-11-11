@@ -28,6 +28,8 @@ Servicio de identidad de Profelink Kahoot. La autenticación usa exclusivamente
 
 ## Contrato de autenticación
 
+Guía de variables, base de datos, bootstrap y CORS: [Railway](docs/railway.md).
+
 - `POST /auth/login`: `{username,password}` → 200 `{accessToken,user}`.
 - `GET /auth/me`, `POST /auth/session/validate`: Bearer → 200 perfil seguro.
 - `GET /auth/users?page=1&limit=20`: MASTER → `{items,total,page,limit}`.
