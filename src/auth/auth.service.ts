@@ -21,19 +21,19 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const existingUser = await this.userRepository.findOne({
-      where: { email: dto.email },
+      where: { username: dto.username },
     });
     if (existingUser) {
-      throw new ConflictException('El correo ya está registrado');
+      throw new ConflictException('El nombre de usuario ya está registrado');
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(dto.password, salt);
 
     const user = this.userRepository.create({
-      email: dto.email,
+      username: dto.username,
       passwordHash,
-      role: dto.role || 'PROFESSOR',
+      role: dto.role || 'ESTUDIANTE',
     });
 
     await this.userRepository.save(user);
@@ -43,7 +43,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.userRepository.findOne({
-      where: { email: dto.email },
+      where: { username: dto.username },
     });
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -60,7 +60,7 @@ export class AuthService {
   private generateJwt(user: User) {
     const payload = {
       sub: user.id,
-      email: user.email,
+      username: user.username,
       role: user.role,
     };
 
@@ -68,7 +68,7 @@ export class AuthService {
       accessToken: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        email: user.email,
+        username: user.username,
         role: user.role,
       },
     };
