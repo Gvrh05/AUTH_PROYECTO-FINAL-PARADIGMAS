@@ -1,13 +1,16 @@
-import 'dotenv/config';
+import { authMetricsMiddleware } from './telemetry';
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { corsOrigins } from './cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(authMetricsMiddleware());
+  app.enableShutdownHooks();
 
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: corsOrigins(),
   });
   app.useGlobalPipes(
     new ValidationPipe({

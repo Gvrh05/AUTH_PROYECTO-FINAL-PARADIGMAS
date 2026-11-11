@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './users/entities/user.entity';
 import { CreateUsers1800000000000 } from './database/migrations/1800000000000-CreateUsers';
 import { AccountManagement1800000000001 } from './database/migrations/1800000000001-AccountManagement';
+import { TelemetryLifecycle } from './telemetry';
 
 @Module({
   imports: [
@@ -25,6 +26,6 @@ import { AccountManagement1800000000001 } from './database/migrations/1800000000
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, TelemetryLifecycle],
 })
 export class AppModule {}
