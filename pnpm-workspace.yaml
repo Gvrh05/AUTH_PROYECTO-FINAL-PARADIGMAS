@@ -1,4 +1,4 @@
 allowBuilds:
+  protobufjs: true
   '@parcel/watcher': true
   bcrypt: true
-  protobufjs: true

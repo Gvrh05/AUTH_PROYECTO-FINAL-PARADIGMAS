@@ -2,12 +2,10 @@ import type { INestApplication } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { resolve } from 'node:path';
+import { corsOrigins } from './cors';
 
 export function configureApp(app: INestApplication): void {
-  const origins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+  const origins = corsOrigins();
   app.enableCors({ origin: origins });
   app.useGlobalPipes(
     new ValidationPipe({
