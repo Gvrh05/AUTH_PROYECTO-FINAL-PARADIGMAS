@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -22,4 +22,9 @@ async function bootstrap() {
   console.log(`Auth Service corriendo en puerto ${port}`);
 }
 
-void bootstrap();
+void bootstrap().catch((error: unknown) => {
+  Logger.error(
+    error instanceof Error ? error.message : 'No se pudo iniciar Auth',
+  );
+  process.exit(1);
+});
