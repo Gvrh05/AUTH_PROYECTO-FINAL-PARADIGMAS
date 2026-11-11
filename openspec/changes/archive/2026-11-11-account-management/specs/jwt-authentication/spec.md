@@ -18,32 +18,16 @@ Auth MUST issue/validate HS256 JWT with UUID sub, MASTER|PROFESOR role, purpose 
 - **WHEN** signature/algorithm/audience/issuer/expiration/claims are invalid or account state differs
 - **THEN** protected Auth operations return 401.
 
-## REMOVED Requirements
-
-### Requirement: Global Endpoint Authorization and Public Exceptions
-**Reason**: Legacy specification describes another service's quizzes/images and excludes Auth login.
-**Migration**: Use Auth endpoint authorization below; resource access belongs to API specs.
-
-### Requirement: Authenticated Context via ICurrentUser
-**Reason**: .NET ICurrentUser does not exist in this Nest Auth service.
-**Migration**: Consumers use safe session profile UUID for resource authorization.
-
-### Requirement: SignalR Hub Authentication via Query Parameter
-**Reason**: Auth exposes no SignalR or gameplay websocket.
-**Migration**: Gameplay authentication is owned by API; Auth uses Authorization header.
-
-## ADDED Requirements
-
 ### Requirement: Auth endpoint authorization
-Auth MUST allow public login/health, require active account for me/session validation and MASTER for user administration; public registration MUST be absent.
+Auth MUST allow public login, health and registration of a PROFESOR profile. Me and session validation require an active account. User administration requires MASTER.
 
-#### Scenario: Unauthorized account administration
+#### Scenario: Professor administration
 - **WHEN** a PROFESOR calls user management
 - **THEN** Auth returns 403.
 
 ### Requirement: Header-only account credentials
 Auth MUST read credentials only from Authorization Bearer.
 
-#### Scenario: Query-only token
+#### Scenario: Query token
 - **WHEN** a protected request provides only query access_token
 - **THEN** Auth returns 401.
