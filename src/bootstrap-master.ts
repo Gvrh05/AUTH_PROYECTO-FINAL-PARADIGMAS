@@ -14,16 +14,13 @@ export async function provisionMaster(source: DataSource) {
     const system = await manager.findOneBy(User, { isSystem: true });
     // The immutable marker survives visible username changes; never reset an existing account.
     if (system) return { id: system.id, created: false };
-    const username = (process.env.DEMO_USER_USERNAME || 'profesor_test')
-      .trim()
-      .toLowerCase();
-    if (await manager.findOneBy(User, { username }))
-      throw new Error(
-        'Identidad demo existente sin marca de sistema; requiere revisión de migración',
-      );
+    // Fixed initial demo identity. Existing system accounts above are never reset.
+    const username = 'profesor_test';
+    const existing = await manager.findOneBy(User, { username });
+    if (existing) return { id: existing.id, created: false };
     const dto = plainToInstance(CreateUserDto, {
       username,
-      password: process.env.DEMO_USER_PASSWORD,
+      password: 'Profesor123!',
     });
     await validateOrReject(dto, {
       validationError: { target: false, value: false },

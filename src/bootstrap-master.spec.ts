@@ -40,20 +40,29 @@ describe('Internal MASTER bootstrap', () => {
     });
     expect(manager.save).not.toHaveBeenCalled();
   });
-  it('does not promote an existing ordinary account', async () => {
+  it('leaves an existing username and password unchanged without promoting it', async () => {
     const { manager, source } = fixture(null, { id: 'existing' });
-    await expect(provisionMaster(source)).rejects.toThrow(
-      'Identidad demo existente',
-    );
+    await expect(provisionMaster(source)).resolves.toEqual({
+      id: 'existing',
+      created: false,
+    });
     expect(manager.save).not.toHaveBeenCalled();
   });
-  it('requires valid configured initial password', async () => {
+  it('uses the fixed initial credentials even without password configuration', async () => {
     const { manager, source } = fixture(null);
-    await expect(provisionMaster(source)).rejects.toBeDefined();
-    expect(manager.save).not.toHaveBeenCalled();
+    await expect(provisionMaster(source)).resolves.toMatchObject({
+      created: true,
+    });
+    expect(
+      await bcrypt.compare(
+        'Profesor123!',
+        manager.save.mock.calls[0][1].passwordHash!,
+      ),
+    ).toBe(true);
   });
   it('creates protected MASTER with bcrypt only on empty installation', async () => {
     process.env.DEMO_USER_PASSWORD = 'configured-password-123';
+    process.env.DEMO_USER_USERNAME = 'do_not_create_this';
     const { manager, source } = fixture(null);
     await expect(provisionMaster(source)).resolves.toEqual({
       id: 'new-id',
@@ -67,8 +76,8 @@ describe('Internal MASTER bootstrap', () => {
       active: true,
       credentialVersion: 1,
     });
-    expect(
-      await bcrypt.compare(process.env.DEMO_USER_PASSWORD, saved.passwordHash!),
-    ).toBe(true);
+    expect(await bcrypt.compare('Profesor123!', saved.passwordHash!)).toBe(
+      true,
+    );
   });
 });

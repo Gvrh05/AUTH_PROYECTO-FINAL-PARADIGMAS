@@ -30,6 +30,10 @@ export class AuthController {
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto);
   }
+  @Post('register')
+  register(@Body() dto: CreateUserDto) {
+    return this.auth.create(dto);
+  }
   @Get('me') me(@Headers('authorization') header?: string) {
     return this.auth.validate(header);
   }

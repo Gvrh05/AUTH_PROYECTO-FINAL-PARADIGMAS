@@ -1,0 +1,507 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ProfeLink Auth",
+    "version": "1.0.0",
+    "description": "Registro, autenticación y administración de perfiles."
+  },
+  "servers": [
+    {
+      "url": "/auth"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "security": [],
+        "summary": "Consultar salud de Auth",
+        "responses": {
+          "200": {
+            "description": "Servicio disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "service": {
+                      "type": "string",
+                      "example": "auth"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "security": [],
+        "summary": "Registrar un perfil",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProfile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Perfil creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "409": {
+            "description": "Usuario ya registrado"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "security": [],
+        "summary": "Iniciar sesión",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "Consultar el perfil autenticado",
+        "responses": {
+          "200": {
+            "description": "Perfil activo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido o vencido"
+          }
+        }
+      }
+    },
+    "/session/validate": {
+      "post": {
+        "summary": "Validar un token de cuenta activo",
+        "responses": {
+          "200": {
+            "description": "Perfil activo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido o vencido"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Listar perfiles como MASTER",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfiles paginados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfilePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paginación inválida"
+          },
+          "401": {
+            "description": "Token inválido o vencido"
+          },
+          "403": {
+            "description": "Requiere rol MASTER"
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear un profesor como MASTER",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProfile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Perfil creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Token inválido o vencido"
+          },
+          "403": {
+            "description": "Requiere rol MASTER"
+          },
+          "409": {
+            "description": "Usuario ya registrado"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "patch": {
+        "summary": "Modificar un profesor como MASTER",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil modificado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Token inválido o vencido"
+          },
+          "403": {
+            "description": "Requiere MASTER y no permite desactivar la cuenta del sistema"
+          },
+          "404": {
+            "description": "Perfil no encontrado"
+          },
+          "409": {
+            "description": "Usuario ya registrado"
+          }
+        }
+      }
+    },
+    "/users/{id}/reset-password": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Cambiar contraseña y revocar sesiones del perfil como MASTER",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Password"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contraseña actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Token inválido o vencido"
+          },
+          "403": {
+            "description": "Requiere rol MASTER"
+          },
+          "404": {
+            "description": "Perfil no encontrado"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "NewProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 15,
+            "pattern": "^[a-z0-9_]{3,15}$"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 8,
+            "maxLength": 72,
+            "description": "Máximo de 72 bytes UTF-8."
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 15
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 1
+          }
+        }
+      },
+      "Password": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 8,
+            "maxLength": 72,
+            "description": "Máximo de 72 bytes UTF-8."
+          }
+        }
+      },
+      "UpdateProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 15,
+            "pattern": "^[a-z0-9_]{3,15}$"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "role",
+          "active",
+          "isSystem",
+          "credentialVersion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "MASTER",
+              "PROFESOR"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "isSystem": {
+            "type": "boolean"
+          },
+          "credentialVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": [
+          "accessToken",
+          "user"
+        ],
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/Profile"
+          }
+        }
+      },
+      "ProfilePage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Profile"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

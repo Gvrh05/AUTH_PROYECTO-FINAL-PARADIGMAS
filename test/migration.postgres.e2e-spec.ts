@@ -34,7 +34,7 @@ postgres('PostgreSQL account migration (isolated schemas)', () => {
     source = new DataSource({
       type: 'postgres',
       host: 'localhost',
-      port: 55433,
+      port: Number(env.AUTH_POSTGRES_PORT ?? '55433'),
       username: 'auth',
       password: env.AUTH_POSTGRES_PASSWORD,
       database: 'auth_db',
@@ -202,9 +202,7 @@ postgres('PostgreSQL account migration (isolated schemas)', () => {
     const user = await source
       .getRepository(User)
       .findOneByOrFail({ isSystem: true });
-    expect(
-      await bcrypt.compare('fixture-new-password', user.passwordHash),
-    ).toBe(true);
+    expect(await bcrypt.compare('Profesor123!', user.passwordHash)).toBe(true);
     process.env.DEMO_USER_PASSWORD = 'different-configured-password';
     await provisionMaster(source);
     expect(await source.getRepository(User).count()).toBe(1);
