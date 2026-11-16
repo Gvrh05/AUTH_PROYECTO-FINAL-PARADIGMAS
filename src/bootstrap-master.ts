@@ -12,12 +12,15 @@ export async function provisionMaster(source: DataSource) {
   return source.transaction(async (manager) => {
     await manager.query('LOCK TABLE users IN ACCESS EXCLUSIVE MODE');
     const system = await manager.findOneBy(User, { isSystem: true });
-    // The immutable marker survives visible username changes; never reset an existing account.
-    if (system) return { id: system.id, created: false };
-    // Fixed initial demo identity. Existing system accounts above are never reset.
     const username = 'profesor_test';
-    const existing = await manager.findOneBy(User, { username });
-    if (existing) return { id: existing.id, created: false };
+    const namedAccount = await manager.findOneBy(User, { username });
+    if (system && namedAccount && system.id !== namedAccount.id) {
+      throw new Error(
+        'profesor_test ya pertenece a otra cuenta; revise la identidad demo antes de continuar',
+      );
+    }
+    const existing = system ?? namedAccount;
+
     const dto = plainToInstance(CreateUserDto, {
       username,
       password: 'Profesor123!',
@@ -25,18 +28,22 @@ export async function provisionMaster(source: DataSource) {
     await validateOrReject(dto, {
       validationError: { target: false, value: false },
     });
+    const passwordHash = await bcrypt.hash(dto.password, 10);
     const user = await manager.save(
       User,
       manager.create(User, {
+        ...(existing ?? {}),
         username,
-        passwordHash: await bcrypt.hash(dto.password, 10),
+        passwordHash,
         role: 'MASTER',
         isSystem: true,
         active: true,
-        credentialVersion: 1,
+        credentialVersion: existing
+          ? (existing.credentialVersion ?? 1) + 1
+          : 1,
       }),
     );
-    return { id: user.id, created: true };
+    return { id: user.id, created: !existing };
   });
 }
 
@@ -44,14 +51,18 @@ async function main() {
   const app = await NestFactory.createApplicationContext(AppModule);
   try {
     console.log(await provisionMaster(app.get(DataSource)));
+    console.log(
+      'Usuario profesor_test creado/actualizado con contraseña fija.',
+    );
   } finally {
     await app.close();
   }
 }
 if (require.main === module)
-  void main().catch(() => {
+  void main().catch((error: unknown) => {
     console.error(
       'Bootstrap falló: revise identidad demo, DEMO_USER_PASSWORD y conexión DB',
+      error,
     );
     process.exitCode = 1;
   });
