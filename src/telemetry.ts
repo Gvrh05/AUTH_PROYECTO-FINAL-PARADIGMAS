@@ -60,3 +60,6 @@ export function authMetricsMiddleware() {
     next();
   };
 }
+
+// Keep the current middleware entry point and both legacy/semantic instruments.
+export const observeHttp = authMetricsMiddleware();
