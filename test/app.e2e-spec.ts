@@ -12,6 +12,7 @@ import { User } from '../src/users/entities/user.entity';
 
 describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
   let app: INestApplication<App>;
+  
   let jwt: JwtService;
   let master: User;
   let token: string;
