@@ -4,6 +4,21 @@ import { provisionMaster } from './bootstrap-master';
 import { User } from './users/entities/user.entity';
 
 describe('Internal MASTER bootstrap', () => {
+  const password = 'BootstrapFixture123!';
+  let originalUsername: string | undefined;
+  let originalPassword: string | undefined;
+  beforeEach(() => {
+    originalUsername = process.env.DEMO_USER_USERNAME;
+    originalPassword = process.env.DEMO_USER_PASSWORD;
+    process.env.DEMO_USER_USERNAME = 'profesor_test';
+    process.env.DEMO_USER_PASSWORD = password;
+  });
+  afterEach(() => {
+    if (originalUsername === undefined) delete process.env.DEMO_USER_USERNAME;
+    else process.env.DEMO_USER_USERNAME = originalUsername;
+    if (originalPassword === undefined) delete process.env.DEMO_USER_PASSWORD;
+    else process.env.DEMO_USER_PASSWORD = originalPassword;
+  });
   const fixture = (
     system: Partial<User> | null,
     existing: Partial<User> | null = null,
@@ -12,9 +27,8 @@ describe('Internal MASTER bootstrap', () => {
       query: jest.fn().mockResolvedValue([]),
       findOneBy: jest
         .fn()
-        .mockImplementation(
-          (_entity: unknown, criteria: Partial<User>) =>
-            Promise.resolve(criteria.isSystem ? system : existing),
+        .mockImplementation((_entity: unknown, criteria: Partial<User>) =>
+          Promise.resolve(criteria.isSystem ? system : existing),
         ),
       create: (_entity: unknown, input: Partial<User>) => input,
       save: jest.fn((_entity: unknown, user: Partial<User>) =>
@@ -27,32 +41,27 @@ describe('Internal MASTER bootstrap', () => {
     } as unknown as DataSource;
     return { manager, source };
   };
-  it('updates the protected system account with the fixed credentials', async () => {
-    const { manager, source } = fixture({
+  it('preserves an existing protected account without resetting credentials or state', async () => {
+    const system = Object.freeze({
       id: 'system-id',
       username: 'profesor_test',
-      role: 'MASTER',
+      passwordHash: 'existing-hash',
+      role: 'MASTER' as const,
       isSystem: true,
-      active: true,
+      active: false,
       credentialVersion: 4,
     });
+    const { manager, source } = fixture(system);
     await expect(provisionMaster(source)).resolves.toEqual({
       id: 'system-id',
       created: false,
     });
-    const saved = manager.save.mock.calls[0][1];
-    expect(saved).toMatchObject({
-      username: 'profesor_test',
-      role: 'MASTER',
-      isSystem: true,
-      active: true,
-      credentialVersion: 5,
-    });
-    expect(await bcrypt.compare('Profesor123!', saved.passwordHash!)).toBe(
-      true,
-    );
+    expect(manager.save).not.toHaveBeenCalled();
+    expect(system.passwordHash).toBe('existing-hash');
+    expect(system.credentialVersion).toBe(4);
+    expect(system.active).toBe(false);
   });
-  it('restores the fixed username on a renamed protected system account', async () => {
+  it('preserves the renamed protected account using its immutable system marker', async () => {
     const { manager, source } = fixture({
       id: 'system-id',
       username: 'renamed',
@@ -64,20 +73,17 @@ describe('Internal MASTER bootstrap', () => {
       id: 'system-id',
       created: false,
     });
-    expect(manager.save.mock.calls[0][1]).toMatchObject({
-      username: 'profesor_test',
-      role: 'MASTER',
-      isSystem: true,
-    });
+    expect(manager.save).not.toHaveBeenCalled();
+    expect(manager.findOneBy).toHaveBeenCalledTimes(1);
   });
-  it('creates a protected MASTER with the fixed credentials when absent', async () => {
+  it('creates a protected MASTER with configured credentials only when absent', async () => {
     const { manager, source } = fixture(null);
     await expect(provisionMaster(source)).resolves.toMatchObject({
       created: true,
     });
     expect(
       await bcrypt.compare(
-        'Profesor123!',
+        password,
         manager.save.mock.calls[0][1].passwordHash!,
       ),
     ).toBe(true);
@@ -90,7 +96,7 @@ describe('Internal MASTER bootstrap', () => {
       credentialVersion: 1,
     });
   });
-  it('promotes an existing demo username to the protected MASTER account', async () => {
+  it('rejects an unmarked existing demo username instead of promoting or resetting it', async () => {
     const { manager, source } = fixture(null, {
       id: 'existing-id',
       username: 'profesor_test',
@@ -99,23 +105,12 @@ describe('Internal MASTER bootstrap', () => {
       active: true,
       credentialVersion: 3,
     });
-    await expect(provisionMaster(source)).resolves.toEqual({
-      id: 'existing-id',
-      created: false,
-    });
-    const saved = manager.save.mock.calls[0][1];
-    expect(saved).toMatchObject({
-      username: 'profesor_test',
-      role: 'MASTER',
-      isSystem: true,
-      active: true,
-      credentialVersion: 4,
-    });
-    expect(await bcrypt.compare('Profesor123!', saved.passwordHash!)).toBe(
-      true,
+    await expect(provisionMaster(source)).rejects.toThrow(
+      'requiere revisión de migración',
     );
+    expect(manager.save).not.toHaveBeenCalled();
   });
-  it('rejects an account-name conflict with an existing protected MASTER', async () => {
+  it('leaves both accounts untouched when a protected MASTER already exists', async () => {
     const { manager, source } = fixture(
       {
         id: 'system-id',
@@ -130,9 +125,17 @@ describe('Internal MASTER bootstrap', () => {
         isSystem: false,
       },
     );
-    await expect(provisionMaster(source)).rejects.toThrow(
-      'pertenece a otra cuenta',
-    );
+    await expect(provisionMaster(source)).resolves.toEqual({
+      id: 'system-id',
+      created: false,
+    });
+    expect(manager.save).not.toHaveBeenCalled();
+    expect(manager.findOneBy).toHaveBeenCalledTimes(1);
+  });
+  it('does not create an account when the configured initial password is absent', async () => {
+    delete process.env.DEMO_USER_PASSWORD;
+    const { manager, source } = fixture(null);
+    await expect(provisionMaster(source)).rejects.toBeDefined();
     expect(manager.save).not.toHaveBeenCalled();
   });
 });
