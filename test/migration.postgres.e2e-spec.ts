@@ -6,6 +6,8 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../src/users/entities/user.entity';
 import { CreateUsers1800000000000 } from '../src/database/migrations/1800000000000-CreateUsers';
 import { AccountManagement1800000000001 } from '../src/database/migrations/1800000000001-AccountManagement';
+import { ProfileAvatar1800000000002 } from '../src/database/migrations/1800000000002-ProfileAvatar';
+import { NumericProfileAvatar1800000000003 } from '../src/database/migrations/1800000000003-NumericProfileAvatar';
 import { provisionMaster } from '../src/bootstrap-master';
 
 // Explicit opt-in; credentials are read without printing them. Each case owns
@@ -33,15 +35,19 @@ postgres('PostgreSQL account migration (isolated schemas)', () => {
     schema = `auth_fixture_${randomUUID().replaceAll('-', '')}`;
     source = new DataSource({
       type: 'postgres',
-      host: 'localhost',
-      port: 55433,
-      username: 'auth',
+      host: env.AUTH_POSTGRES_HOST ?? 'localhost',
+      port: Number(env.AUTH_POSTGRES_PORT ?? '55433'),
+      username: env.AUTH_POSTGRES_USER ?? 'auth',
       password: env.AUTH_POSTGRES_PASSWORD,
-      database: 'auth_db',
+      database: env.AUTH_POSTGRES_DB ?? 'auth_db',
       schema,
       extra: { options: `-c search_path=${schema}` },
       entities: [User],
-      migrations: [AccountManagement1800000000001],
+      migrations: [
+        AccountManagement1800000000001,
+        ProfileAvatar1800000000002,
+        NumericProfileAvatar1800000000003,
+      ],
       synchronize: false,
       logging: false,
     });
@@ -102,6 +108,7 @@ postgres('PostgreSQL account migration (isolated schemas)', () => {
       expect(user.isSystem).toBe(user.id === demoId);
       expect(user.active).toBe(true);
       expect(user.credentialVersion).toBe(1);
+      expect(user.avatarId).toBe(0);
     }
     await source
       .getRepository(User)
@@ -154,6 +161,24 @@ postgres('PostgreSQL account migration (isolated schemas)', () => {
       expect(migrations).toEqual([]);
     },
   );
+
+  it('converts a previously saved avatar and accepts the expanded catalog', async () => {
+    await seed();
+    await source.runMigrations();
+    await source.undoLastMigration();
+    await source.query('UPDATE users SET "avatarId" = $1 WHERE id = $2', [
+      'owl-menta',
+      professorId,
+    ]);
+    await source.runMigrations();
+    const users = source.getRepository(User);
+    expect((await users.findOneByOrFail({ id: professorId })).avatarId).toBe(1);
+    await users.update(professorId, { avatarId: 14 });
+    expect((await users.findOneByOrFail({ id: professorId })).avatarId).toBe(
+      14,
+    );
+    await expect(users.update(professorId, { avatarId: 15 })).rejects.toThrow();
+  });
 
   it('enforces system trigger, role/version checks and normalized uniqueness in SQL', async () => {
     await seed();

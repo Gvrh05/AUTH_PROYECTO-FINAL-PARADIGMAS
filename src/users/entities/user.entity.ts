@@ -13,6 +13,9 @@ export class User {
   @Column({ unique: true })
   username: string;
 
+  @Column({ type: 'integer', default: 0 })
+  avatarId: number;
+
   @Column()
   passwordHash: string;
 

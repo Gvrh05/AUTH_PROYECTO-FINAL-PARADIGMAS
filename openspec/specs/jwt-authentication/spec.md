@@ -6,29 +6,33 @@ Auth emite y valida credenciales de cuentas docentes. Autorización de recursos 
 ## Requirements
 
 ### Requirement: Configuration-driven JWT Bearer Validation
-Auth MUST require JWT_SECRET, use JWT_AUDIENCE (default kahoot-api) and validate JWT_ISSUER when configured.
+Auth MUST require JWT_SECRET, use JWT_AUDIENCE default kahoot-api, and validate optional configured JWT_ISSUER.
 
 #### Scenario: Missing secret
-- **WHEN** Auth starts without a nonempty JWT_SECRET
+- **WHEN** JWT_SECRET is empty
 - **THEN** startup fails.
 
 ### Requirement: Cryptographic Token and Claim Validation
-Auth MUST issue/accept only HS256 account JWT with UUID sub, MASTER|PROFESOR role, purpose account, positive integer credentialVersion and mandatory exp. Login returns accessToken and safe user profile. Validation MUST check current account active state, role and version.
+Auth MUST issue/validate HS256 JWT with UUID sub, MASTER|PROFESOR role, purpose account, positive integer credentialVersion and mandatory exp; validation MUST consult persisted active state/role/version.
+
+#### Scenario: Legacy token
+- **WHEN** a token lacks purpose, credentialVersion or exp
+- **THEN** Auth returns 401 and requires new login.
 
 #### Scenario: Legacy or revoked token
 - **WHEN** signature/algorithm/audience/issuer/expiration/claims are invalid or account state differs
 - **THEN** protected Auth operations return 401.
 
 ### Requirement: Auth endpoint authorization
-Login, /auth/health and root health are public. Me/session validation MUST require active account; account administration MUST require MASTER. /auth/register MUST NOT provision accounts.
+Auth MUST allow public login, health and registration of a PROFESOR profile. Me and session validation require an active account. User administration requires MASTER.
 
 #### Scenario: Professor administration
-- **WHEN** active PROFESOR calls /auth/users
+- **WHEN** a PROFESOR calls user management
 - **THEN** Auth returns 403.
 
 ### Requirement: Header-only account credentials
-Auth MUST read account credentials only from Authorization Bearer, never query parameters.
+Auth MUST read credentials only from Authorization Bearer.
 
 #### Scenario: Query token
-- **WHEN** a request to /auth/me supplies only access_token in query
+- **WHEN** a protected request provides only query access_token
 - **THEN** Auth returns 401.

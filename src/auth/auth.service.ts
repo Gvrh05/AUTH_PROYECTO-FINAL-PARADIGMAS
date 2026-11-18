@@ -18,6 +18,7 @@ import { CreateUserDto, ListUsersDto, UpdateUserDto } from './dto/account.dto';
 export const safeUser = (u: User) => ({
   id: u.id,
   username: u.username,
+  avatarId: u.avatarId ?? 0,
   role: u.role,
   active: u.active,
   isSystem: u.isSystem,
@@ -108,11 +109,12 @@ export class AuthService {
     };
   }
 
-  async create(dto: CreateUserDto, actor: string) {
+  async create(dto: CreateUserDto, actor?: string) {
     try {
       const user = await this.users.save(
         this.users.create({
           username: dto.username,
+          avatarId: dto.avatarId ?? 0,
           passwordHash: await bcrypt.hash(dto.password, 10),
           role: 'PROFESOR',
           active: true,
@@ -120,7 +122,7 @@ export class AuthService {
           credentialVersion: 1,
         }),
       );
-      this.audit('create', actor, user.id);
+      this.audit(actor ? 'create' : 'register', actor ?? user.id, user.id);
       return safeUser(user);
     } catch (error) {
       this.rethrow(error);

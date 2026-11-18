@@ -1,7 +1,7 @@
 # Account management
 
 ## Why
-Retirar el registro público y separar administración MASTER de docencia PROFESOR; revocar sesiones cuando cambia la vigencia de la cuenta sin perder identidades existentes.
+Permitir el registro público de perfiles PROFESOR y separar la administración MASTER. Revocar sesiones cuando cambia la vigencia de la cuenta sin perder identidades existentes.
 
 ## What changes
 - Migración conservadora de identidad demo configurada y restricciones PostgreSQL.
@@ -14,4 +14,4 @@ Retirar el registro público y separar administración MASTER de docencia PROFES
 - Modified: jwt-authentication.
 
 ## Impact
-Consumidores deben abandonar /auth/register, autenticar cuenta provisionada y validar sesiones contra Auth. Instalaciones nuevas ejecutan build, bootstrap y arranque. No cambia propiedad de recursos en otros servicios.
+Los consumidores pueden registrar un perfil mediante /auth/register, iniciar sesión y validar sesiones contra Auth. Las instalaciones nuevas ejecutan build, bootstrap y arranque.

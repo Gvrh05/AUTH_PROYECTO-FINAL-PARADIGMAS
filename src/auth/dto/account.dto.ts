@@ -30,6 +30,12 @@ export class PasswordDto {
 }
 
 export class CreateUserDto extends PasswordDto {
+  @ValidateIf((_object, value: unknown) => value !== undefined)
+  @IsInt()
+  @Min(0)
+  @Max(14)
+  avatarId?: number;
+
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )

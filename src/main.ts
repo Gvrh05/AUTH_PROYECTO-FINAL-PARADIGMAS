@@ -1,21 +1,14 @@
-import 'dotenv/config';
+import { observeHttp } from './telemetry';
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { configureApp } from './app.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  ); // validacion de dtos de forma automatica
+  app.use(observeHttp);
+  configureApp(app);
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);

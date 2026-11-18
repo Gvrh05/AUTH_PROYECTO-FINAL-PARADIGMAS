@@ -1,0 +1,3 @@
+- [x] Implementar SDK, métricas HTTP y CORS por lista validada.
+- [x] Build, lint, 16 unitarias, 5 e2e y receptor OTLP/protobuf aislado.
+- [ ] Redeploy Railway y evidencia de recepción en la instancia Cloud del usuario.
