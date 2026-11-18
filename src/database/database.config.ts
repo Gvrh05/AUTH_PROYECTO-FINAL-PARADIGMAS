@@ -1,4 +1,6 @@
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ProfileAvatar1800000000002 } from './migrations/1800000000002-ProfileAvatar';
+import { NumericProfileAvatar1800000000003 } from './migrations/1800000000003-NumericProfileAvatar';
 import { User } from '../users/entities/user.entity';
 import { CreateUsers1800000000000 } from './migrations/1800000000000-CreateUsers';
 import { AccountManagement1800000000001 } from './migrations/1800000000001-AccountManagement';
@@ -10,7 +12,12 @@ export function databaseOptions(
     type: 'postgres' as const,
     entities: [User],
     synchronize: false,
-    migrations: [CreateUsers1800000000000, AccountManagement1800000000001],
+    migrations: [
+      CreateUsers1800000000000,
+      AccountManagement1800000000001,
+      ProfileAvatar1800000000002,
+      NumericProfileAvatar1800000000003,
+    ],
     migrationsRun: true,
   };
   if (env.DATABASE_URL?.trim()) {

@@ -60,7 +60,7 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
     const agent = request(app.getHttpServer());
     const registered = await agent
       .post('/auth/register')
-      .send(input)
+      .send({ ...input, avatarId: 14 })
       .expect(201);
     const profile = registered.body as {
       username: string;
@@ -71,6 +71,7 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
       username: 'perfil_demo',
       role: 'PROFESOR',
       isSystem: false,
+      avatarId: 14,
     });
     expect(profile).not.toHaveProperty('passwordHash');
     await agent.post('/auth/register').send(input).expect(409);
@@ -78,8 +79,16 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
       .post('/auth/register')
       .send({ ...input, role: 'MASTER' })
       .expect(400);
+    await agent
+      .post('/auth/register')
+      .send({ ...input, avatarId: 15 })
+      .expect(400);
     const loggedIn = await agent.post('/auth/login').send(input).expect(200);
-    const session = loggedIn.body as { accessToken: string };
+    const session = loggedIn.body as {
+      accessToken: string;
+      user: { avatarId: number };
+    };
+    expect(session.user.avatarId).toBe(14);
     await agent
       .get('/auth/users')
       .set('Authorization', `Bearer ${session.accessToken}`)
@@ -152,6 +161,7 @@ describe('Account HTTP (fixture aislado, JWT y bcrypt reales)', () => {
       .expect(200);
     expect(Object.keys(me.body as object).sort()).toEqual([
       'active',
+      'avatarId',
       'credentialVersion',
       'id',
       'isSystem',
